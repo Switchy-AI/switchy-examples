@@ -10,65 +10,92 @@ Each example is a minimal, runnable project. Clone the repo, set your `SWITCHY_A
 
 ```
 switchy-examples/
-├── quickstart/              # 30-line "hello memory" script
-├── langchain/               # Switchy as a LangChain Memory class
-├── llamaindex/              # Switchy as a LlamaIndex memory module
-├── vercel-ai-sdk/           # Next.js chat app with persistent memory
-├── crewai/                  # Multi-agent crew with shared memory
-├── openai-agents-sdk/       # Agents SDK + Switchy working memory
-├── openrouter-byok/         # BYOK setup — route 450+ models through Switchy
-├── multi-model/             # Text → image → code, all sharing one memory
-├── rag-hybrid/              # Switchy + your existing vector DB
-└── python-quickstart/       # Same quickstart in Python
+├── packages/
+│   └── switchy-sdk/           # Lightweight TypeScript SDK
+├── examples/
+│   ├── quickstart/            # 30-line "hello memory" script (TS)
+│   ├── python-quickstart/     # Same quickstart in Python (no SDK needed)
+│   ├── langchain/             # Switchy as a LangChain Memory class
+│   ├── llamaindex/            # Switchy + LlamaIndex query engine
+│   ├── vercel-ai-sdk/         # Vercel AI SDK with persistent memory
+│   ├── crewai/                # Multi-agent crew with shared memory
+│   ├── openai-agents-sdk/     # Function-calling agent with save_memory tool
+│   ├── openrouter-byok/       # BYOK — 4 different models, one memory
+│   ├── multi-model/           # GPT-4o ↔ GPT-4o-mini ↔ GPT-3.5 sharing memory
+│   └── rag-hybrid/            # Semantic memory + knowledge graph RAG
+└── package.json               # npm workspaces root
 ```
 
-Each folder is self-contained with its own README, `package.json`/`requirements.txt`, and `.env.example`.
+Each folder is self-contained with its own README, `package.json` / `requirements.txt`, and `.env.example`.
 
 ---
 
-## Five-line quickstart
-
-```ts
-import { Switchy } from '@switchy/sdk';
-
-const memory = new Switchy({ apiKey: process.env.SWITCHY_API_KEY }).memory;
-
-await memory.write({ namespace: 'user_123', content: 'I prefer TypeScript over Python' });
-const ctx = await memory.buildContext({ namespace: 'user_123', query: 'help me write a function', modelType: 'chat' });
-// Pass `ctx.messages` to any model. That's it.
-```
-
-## Python
-
-```python
-from switchy import Switchy
-
-memory = Switchy(api_key=os.environ["SWITCHY_API_KEY"]).memory
-
-memory.write(namespace="user_123", content="I prefer TypeScript over Python")
-ctx = memory.build_context(namespace="user_123", query="help me write a function", model_type="chat")
-```
-
----
-
-## Why examples, not a tutorial
-
-Documentation that reads well and documentation that ships production code are different things. This repo is the second kind.
-
-Every example here has been tested end-to-end. If something breaks, open an issue — we respond fast.
-
----
-
-## Running locally
+## Quick start
 
 ```bash
 git clone https://github.com/Switchy-AI/switchy-examples
-cd switchy-examples/quickstart
-cp .env.example .env          # add your SWITCHY_API_KEY
-npm install && npm start
+cd switchy-examples
+npm install                       # installs all workspaces
+
+cd examples/quickstart
+cp .env.example .env              # add your SWITCHY_API_KEY
+npm start
 ```
 
-Get a free API key at [switchy.build](https://switchy.build) — no card, no waitlist.
+Get a free API key at [switchy.build](https://switchy.build).
+
+---
+
+## SDK usage
+
+The `@switchy/sdk` package is a thin HTTP client (like Stripe's SDK). It works with any TypeScript/Node.js project:
+
+```ts
+import { SwitchyClient } from '@switchy/sdk';
+
+const client = new SwitchyClient({ apiKey: process.env.SWITCHY_API_KEY! });
+
+// Write a memory
+await client.memory.write('default', {
+  content: 'User prefers TypeScript and dark mode.',
+  type: 'PREFERENCE',
+});
+
+// Build context for any LLM prompt
+const ctx = await client.memory.buildContext('default', {
+  query: 'Help me set up my editor',
+  maxTokens: 2000,
+});
+
+// Pass ctx.context into your system prompt — that's it.
+```
+
+### Python (no SDK needed)
+
+```python
+import httpx
+
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+r = httpx.post(f"{base_url}/api/v1/memory/default/semantic",
+               headers=headers, json={"content": "...", "type": "FACT"})
+```
+
+---
+
+## Examples by framework
+
+| Example | Language | Framework | What it shows |
+|---------|----------|-----------|---------------|
+| [quickstart](examples/quickstart/) | TypeScript | — | Write, query, build context |
+| [python-quickstart](examples/python-quickstart/) | Python | httpx | Same as above, pure Python |
+| [langchain](examples/langchain/) | TypeScript | LangChain | `SwitchyMemory` extends `BaseMemory` |
+| [llamaindex](examples/llamaindex/) | Python | LlamaIndex | Memory → Documents → Query Engine |
+| [vercel-ai-sdk](examples/vercel-ai-sdk/) | TypeScript | Vercel AI SDK | `generateText()` with memory context |
+| [crewai](examples/crewai/) | Python | CrewAI | Shared memory across agent crew |
+| [openai-agents-sdk](examples/openai-agents-sdk/) | TypeScript | OpenAI | Function-calling agent with `save_memory` tool |
+| [openrouter-byok](examples/openrouter-byok/) | TypeScript | OpenRouter | 4 models, one memory, BYOK |
+| [multi-model](examples/multi-model/) | TypeScript | OpenAI | GPT-4o ↔ mini ↔ 3.5 sharing memory |
+| [rag-hybrid](examples/rag-hybrid/) | TypeScript | OpenAI | Semantic memory + knowledge graph |
 
 ---
 
@@ -76,20 +103,20 @@ Get a free API key at [switchy.build](https://switchy.build) — no card, no wai
 
 Got a stack we don't cover? Open a PR. The bar:
 
-1. Minimal — smallest possible code that demonstrates the integration
-2. Runnable — works out of the box with `.env.example` + `npm install` (or equivalent)
-3. Honest — if Switchy doesn't help for your use case, say so in the README
+1. **Minimal** — smallest possible code that demonstrates the integration
+2. **Runnable** — works out of the box with `.env.example` + `npm install` (or equivalent)
+3. **Honest** — if Switchy doesn't help for your use case, say so in the README
 
 ---
 
 ## License
 
-MIT. Do whatever you want.
+MIT
 
 ---
 
-## Related
+## Links
 
-- **[Switchy docs](https://switchy.build/docs)** — full SDK reference
-- **[awesome-ai-memory](https://github.com/Switchy-AI/awesome-ai-memory)** — curated list of memory tools and papers
-- **[memory-bench](https://github.com/Switchy-AI/memory-bench)** — open benchmark for agent memory systems
+- [Switchy](https://switchy.build) — the product
+- [API Docs](https://switchy.build/docs) — full reference
+- [X](https://x.com/switchy_ai) · [GitHub](https://github.com/Switchy-AI) · [LinkedIn](https://www.linkedin.com/company/switchy-ai)

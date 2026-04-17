@@ -1,0 +1,18 @@
+{
+  "name": "switchy-examples",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "quickstart": "npm -w @switchy-examples/quickstart start",
+    "langchain": "npm -w @switchy-examples/langchain start",
+    "vercel-ai": "npm -w @switchy-examples/vercel-ai-sdk start",
+    "multi-model": "npm -w @switchy-examples/multi-model start",
+    "rag-hybrid": "npm -w @switchy-examples/rag-hybrid start",
+    "openai-agents": "npm -w @switchy-examples/openai-agents-sdk start",
+    "openrouter": "npm -w @switchy-examples/openrouter-byok start"
+  }
+}
